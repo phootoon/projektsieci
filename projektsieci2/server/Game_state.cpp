@@ -2,7 +2,7 @@
 
 // Constructor
 Game_state::Game_state(int numPlayers) : numPlayers(numPlayers) {
-    aliveStatus.resize(numPlayers, true);
+    aliveStatus.resize(numPlayers, false);
     connectedStatus.resize(numPlayers, false);
     targets.resize(numPlayers, 0);
     probabilities.resize(numPlayers, 0.0f);
