@@ -1,10 +1,35 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef TCPSERVER_HPP
+#define TCPSERVER_HPP
 
-class Server
+#include <QObject>
+
+#include <QHash>
+#include <QTcpSocket>
+#include "Game_state.h"
+
+class TcpServer : public QObject
 {
+    Q_OBJECT
 public:
-    Server();
+    explicit TcpServer(QObject *parent = nullptr, int numPlayers = 0);
+
+signals:
+    void newMessage(const QByteArray &ba);
+
+private slots:
+    void onNewConnection();
+    void onReadyRead();
+    void onClientDisconnected();
+    void onNewMessage(const QByteArray &ba);
+
+private:
+    int numPlayers;
+    Game_state game_state;
+    QString getClientKey(const QTcpSocket *client) const;
+
+    QTcpServer _server;
+    QHash<int, QTcpSocket*> _clients;
+
 };
 
-#endif // SERVER_H
+#endif
