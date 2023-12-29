@@ -17,7 +17,7 @@ public:
     const int& getTarget(int ix) const;
     const std::vector<bool>& getReadys() const;
     const std::vector<bool>& getVotes() const;
-    const std::chrono::time_point<std::chrono::high_resolution_clock>& getAimTS() const;
+    const std::chrono::time_point<std::chrono::high_resolution_clock>& getAimTS(int playerId) const;
 
     void setAliveStatus(int playerId, bool alive);
     void setConnectedStatus(int playerId, bool connected);
