@@ -1,3 +1,146 @@
 #include "Server.h"
+#include <QTcpSocket>
+#include <QTcpServer>
+#include <QHostAddress>
+#include <QObject>
+#include <sstream>
+#include <random>
 
-Server::Server() {}
+
+int findFreeSlot(const std::vector<bool>& boolArray) {
+    for (int i = 0; i < boolArray.size(); ++i) {
+        if (boolArray[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+bool parseMessage(const std::string& input, int& firstNumber, int& secondNumber) {
+    std::istringstream iss(input);
+    char colon;
+
+    if (iss >> firstNumber >> colon >> secondNumber && colon == ':') {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+float generateRandomFloat() {
+    static std::mt19937 gen(std::random_device{}());
+    std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+    return distribution(gen);
+}
+
+TcpServer::TcpServer(QObject *parent,  int numPlayers) : QObject(parent), game_state(numPlayers), numPlayers(numPlayers)
+{
+    connect(&_server, &QTcpServer::newConnection, this, &TcpServer::onNewConnection);
+    connect(this, &TcpServer::newMessage, this, &TcpServer::onNewMessage);
+    if(_server.listen(QHostAddress::Any, 45000)) {
+        qInfo() << "Listening ...";
+    }
+}
+
+void TcpServer::onNewConnection()
+{
+    int ix = findFreeSlot(game_state.getConnectedStatus());
+    game_state.setConnectedStatus(ix, true);
+    game_state.setAliveStatus(ix, true);
+    const auto client = _server.nextPendingConnection();
+    if(client == nullptr) {
+        return;
+    }
+
+    qInfo() << "New client connected.";
+
+    _clients.insert(ix, client);
+
+    connect(client, &QTcpSocket::readyRead, this, &TcpServer::onReadyRead);
+    connect(client, &QTcpSocket::disconnected, this, &TcpServer::onClientDisconnected);
+}
+
+void TcpServer::onReadyRead()
+{
+    const auto client = qobject_cast<QTcpSocket*>(sender());
+
+    if(client == nullptr) {
+        return;
+    }
+
+    auto message = client->readAll();
+    int ix;
+    int command;
+    int target;
+    using Clock = std::chrono::high_resolution_clock;
+
+    auto now = Clock::now();
+    if (parseMessage(message, ix, command)){
+        if (ix >= 0 and ix < numPlayers){
+            switch(command){
+            // case 0:
+            //     jestem aktywny
+            case 1:
+                //strzelam
+                target = game_state.getTarget(ix);
+                float prob = calculateProb(game_state.getAimTS(ix), now);
+                if (prob > generateRandomFloat()){
+                    QTcpSocket* client = _clients.value(target, nullptr);
+                    client->write("0");
+                    emit newMessage(message);
+                }
+
+            case 2:
+                //celuję
+                game_state.setAimTS(ix, now)
+            case 3:
+                //zmieniam cel w prawo
+                target = game_state.getTarget(ix);
+                if  (target >= 0 and target < numPlayers - 1){
+                    game_state.setTarget(ix, target + 1);
+                }
+            case 4:
+                //zmieniam cel w lewo
+                target = game_state.getTarget(ix);
+                if  (target > 0 and target < numPlayers){
+                    game_state.setTarget(ix, target - 1);
+                }
+            case 5:
+                //zgłaszam gotowość
+                game_state.setReady(ix, true);
+            case 6:
+                game_state.setVote(ix, true);
+            case 7:
+                game_state.deletePlayer(ix, game_state);
+            }
+        }
+
+
+
+
+
+}
+
+void TcpServer::onClientDisconnected()
+{
+    const auto client = qobject_cast<QTcpSocket*>(sender());
+
+    if(client == nullptr) {
+        return;
+    }
+
+    _clients.remove(this->getClientKey(client));
+}
+
+void TcpServer::onNewMessage(const QByteArray &ba)
+{
+    for(const auto &client : qAsConst(_clients)) {
+        client->write(ba);
+        client->flush();
+    }
+}
+
+QString TcpServer::getClientKey(const QTcpSocket *client) const
+{
+    return client->peerAddress().toString().append(":").append(QString::number(client->peerPort()));
+}
