@@ -9,13 +9,16 @@
 #include <QDebug>
 #include <QIODevice>
 
-QByteArray serializeArray(const bool* dataArray, int arraySize) {
+QByteArray serializeArray(const std::vector<bool>& dataArray, int arraySize) {
     QByteArray serializedData;
     QDataStream stream(&serializedData, QIODevice::WriteOnly);
     stream << arraySize;
-    for (int i = 0; i < arraySize; ++i) {
-        stream << dataArray[i];
-    }
+
+    // Convert std::vector<bool> to std::vector<char>
+    std::vector<char> charArray(dataArray.begin(), dataArray.end());
+
+    // Serialize the std::vector<char>
+    stream.writeRawData(charArray.data(), charArray.size());
 
     return serializedData;
 }
@@ -136,6 +139,7 @@ void TcpServer::onReadyRead(){
                 game_state.deletePlayer(ix, game_state);
             }
         }
+    }
 }
 
 void TcpServer::onClientDisconnected()
@@ -145,13 +149,19 @@ void TcpServer::onClientDisconnected()
     if(client == nullptr) {
         return;
     }
-
-    _clients.remove(this->getClientKey(client));
+    int keyToRemove = -1;
+    for (auto it = _clients.begin(); it != _clients.end(); ++it) {
+        if (it.value() == client) {
+            keyToRemove = it.key();
+            break;
+        }
+    }
+    _clients.remove(keyToRemove);
 }
 
 void TcpServer::onNewMessage(const QByteArray &ba)
 {
-    for(const auto &client : qAsConst(_clients)) {
+    for(const auto &client : std::as_const(_clients)) {
         client->write(ba);
         client->flush();
     }
