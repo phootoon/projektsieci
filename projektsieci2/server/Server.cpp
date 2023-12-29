@@ -5,7 +5,31 @@
 #include <QObject>
 #include <sstream>
 #include <random>
+#include <QCoreApplication>
+#include <QDebug>
+#include <QIODevice>
 
+QByteArray serializeArray(const std::vector<bool>& dataArray, int arraySize) {
+    QByteArray serializedData;
+    QDataStream stream(&serializedData, QIODevice::WriteOnly);
+    stream << arraySize;
+
+    // Convert std::vector<bool> to std::vector<char>
+    std::vector<char> charArray(dataArray.begin(), dataArray.end());
+
+    // Serialize the std::vector<char>
+    stream.writeRawData(charArray.data(), charArray.size());
+
+    return serializedData;
+}
+
+QByteArray serializeInt(int data) {
+    QByteArray byteArray;
+    QDataStream stream(&byteArray, QIODevice::WriteOnly);
+    stream << data;
+
+    return byteArray;
+}
 
 int findFreeSlot(const std::vector<bool>& boolArray) {
     for (int i = 0; i < boolArray.size(); ++i) {
@@ -60,8 +84,7 @@ void TcpServer::onNewConnection()
     connect(client, &QTcpSocket::disconnected, this, &TcpServer::onClientDisconnected);
 }
 
-void TcpServer::onReadyRead()
-{
+void TcpServer::onReadyRead(){
     const auto client = qobject_cast<QTcpSocket*>(sender());
 
     if(client == nullptr) {
@@ -72,6 +95,7 @@ void TcpServer::onReadyRead()
     int ix;
     int command;
     int target;
+    float prob;
     using Clock = std::chrono::high_resolution_clock;
 
     auto now = Clock::now();
@@ -83,16 +107,17 @@ void TcpServer::onReadyRead()
             case 1:
                 //strzelam
                 target = game_state.getTarget(ix);
-                float prob = calculateProb(game_state.getAimTS(ix), now);
+                prob = calculateProb(game_state.getAimTS(ix), now);
                 if (prob > generateRandomFloat()){
                     QTcpSocket* client = _clients.value(target, nullptr);
                     client->write("0");
+                    auto message = serializeArray(game_state.getAliveStatus(), numPlayers);
                     emit newMessage(message);
                 }
 
             case 2:
                 //celuję
-                game_state.setAimTS(ix, now)
+                game_state.setAimTS(ix, now);
             case 3:
                 //zmieniam cel w prawo
                 target = game_state.getTarget(ix);
@@ -114,11 +139,7 @@ void TcpServer::onReadyRead()
                 game_state.deletePlayer(ix, game_state);
             }
         }
-
-
-
-
-
+    }
 }
 
 void TcpServer::onClientDisconnected()
@@ -128,13 +149,19 @@ void TcpServer::onClientDisconnected()
     if(client == nullptr) {
         return;
     }
-
-    _clients.remove(this->getClientKey(client));
+    int keyToRemove = -1;
+    for (auto it = _clients.begin(); it != _clients.end(); ++it) {
+        if (it.value() == client) {
+            keyToRemove = it.key();
+            break;
+        }
+    }
+    _clients.remove(keyToRemove);
 }
 
 void TcpServer::onNewMessage(const QByteArray &ba)
 {
-    for(const auto &client : qAsConst(_clients)) {
+    for(const auto &client : std::as_const(_clients)) {
         client->write(ba);
         client->flush();
     }
