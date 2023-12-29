@@ -2,7 +2,7 @@
 #define TCPSERVER_HPP
 
 #include <QObject>
-
+#include <QTcpServer>
 #include <QHash>
 #include <QTcpSocket>
 #include "Game_state.h"
