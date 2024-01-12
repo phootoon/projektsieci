@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/ress">
+        <file>resources/gamewindowbackground.jpg</file>
+        <file>resources/lobby.png</file>
+        <file>resources/deathscreen.png</file>
+        <file>resources/connect.png</file>
+        <file>resources/mainmenu.png</file>
+        <file>resources/image.png</file>
+    </qresource>
+</RCC>

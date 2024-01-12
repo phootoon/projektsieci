@@ -36,6 +36,18 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         server/Network_server.h server/Network_server.cpp
         server/Player.h server/Player.cpp
         server/Server.h server/Server.cpp
+        client/Death_screen.ui
+
+
+
+        client/lobbywindow.ui
+        client/gamewindow.ui
+        client/background.qrc
+        client/connect_window.h client/connect_window.cpp
+        client/connectwindow.ui
+        server/Server_window.h server/Server_window.cpp
+        server/serverwindow.ui
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET projektsieci2 APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
