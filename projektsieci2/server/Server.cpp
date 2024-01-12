@@ -1,36 +1,25 @@
 #include "Server.h"
+#include "Game_state.h"
 #include <QTcpSocket>
 #include <QTcpServer>
 #include <QHostAddress>
 #include <QObject>
+#include <sstream>
 #include <random>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QIODevice>
-#include <QDataStream>
 
-double calculateProb(const std::chrono::high_resolution_clock::time_point& timestamp) {
-    auto now = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - timestamp).count();
-    const double maxDuration = 3600000;
-    double probability = static_cast<double>(duration) / maxDuration;
-    if (probability > 1.0) probability = 1.0;
-    if (probability < 0.0) probability = 0.0;
-
-    return probability;
-}
-
-QByteArray serializeArray(const std::vector<bool>& dataArray, int arraySize) {
+QByteArray serializeArray(const std::vector<bool>& dataArray, int size) {
     QByteArray serializedData;
     QDataStream stream(&serializedData, QIODevice::WriteOnly);
+    int arraySize = dataArray.size();
     stream << arraySize;
 
-    // Convert std::vector<bool> to std::vector<char>
     std::vector<char> charArray(dataArray.begin(), dataArray.end());
 
-    // Serialize the std::vector<char>
     stream.writeRawData(charArray.data(), charArray.size());
-
+    
     return serializedData;
 }
 
@@ -51,13 +40,14 @@ int findFreeSlot(const std::vector<bool>& boolArray) {
     return -1;
 }
 
-int parseMessage(const QByteArray &byteArray, int &output) {
-    QDataStream stream(byteArray);
-    stream >> output;
-    if (stream.status() == QDataStream::Ok) {
-        return 1;
+bool parseMessage(const std::string& input, int& firstNumber, int& secondNumber) {
+    std::istringstream iss(input);
+    char colon;
+
+    if (iss >> firstNumber >> colon >> secondNumber && colon == ':') {
+        return true;
     } else {
-        return 0;
+        return false;
     }
 }
 
@@ -81,8 +71,6 @@ void TcpServer::onNewConnection()
     int ix = findFreeSlot(game_state.getConnectedStatus());
     game_state.setConnectedStatus(ix, true);
     game_state.setAliveStatus(ix, true);
-    auto message = serializeArray(game_state.getAliveStatus(), numPlayers);
-    emit newMessage(message);
     const auto client = _server.nextPendingConnection();
     if(client == nullptr) {
         return;
@@ -104,20 +92,14 @@ void TcpServer::onReadyRead(){
     }
 
     auto message = client->readAll();
-    int ix = -1;
-    for (auto it = _clients.begin(); it != _clients.end(); ++it) {
-        if (it.value() == client) {
-            ix = it.key();
-            break;
-        }
-    }
+    int ix;
     int command;
     int target;
     float prob;
     using Clock = std::chrono::high_resolution_clock;
 
     auto now = Clock::now();
-    if (parseMessage(message, command)){
+    if (parseMessage(message, ix, command)){
         if (ix >= 0 and ix < numPlayers){
             switch(command){
             // case 0:
@@ -125,10 +107,10 @@ void TcpServer::onReadyRead(){
             case 1:
                 //strzelam
                 target = game_state.getTarget(ix);
-                prob = calculateProb(game_state.getAimTS(ix));
+                prob = calculateProb(game_state.getAimTS(ix), now);
                 if (prob > generateRandomFloat()){
                     QTcpSocket* client = _clients.value(target, nullptr);
-                    client->write(serializeInt(2));
+                    client->write("0");
                     auto message = serializeArray(game_state.getAliveStatus(), numPlayers);
                     emit newMessage(message);
                 }
@@ -167,21 +149,19 @@ void TcpServer::onClientDisconnected()
     if(client == nullptr) {
         return;
     }
-    int keyToRemove = -1;
-    for (auto it = _clients.begin(); it != _clients.end(); ++it) {
-        if (it.value() == client) {
-            keyToRemove = it.key();
-            break;
-        }
-    }
-    game_state.deletePlayer(keyToRemove, game_state);
-    _clients.remove(keyToRemove);
+
+    _clients.remove(this->getClientKey(client));
 }
 
 void TcpServer::onNewMessage(const QByteArray &ba)
 {
-    for(const auto &client : std::as_const(_clients)) {
+    for(const auto &client : qAsConst(_clients)) {
         client->write(ba);
         client->flush();
     }
+}
+
+QString TcpServer::getClientKey(const QTcpSocket *client) const
+{
+    return client->peerAddress().toString().append(":").append(QString::number(client->peerPort()));
 }
