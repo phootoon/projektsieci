@@ -15,7 +15,7 @@ Game_Window::Game_Window(QWidget *parent)
 
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
-    Generateenemies(playeramount);
+    Generateenemies(playeramount,aliveStatus);
 }
 
 
@@ -36,13 +36,13 @@ void Game_Window::keyPressEvent(QKeyEvent *event) {
     case Qt::Key_Left:
         if(aimplayerindex > 0){
             aimplayerindex --;
-            Game_Window::Generateenemies(playeramount);
+            Game_Window::Generateenemies(playeramount,aliveStatus);
         }
         break;
     case Qt::Key_Right:
         if(aimplayerindex < playeramount-1){
             aimplayerindex ++;
-            Game_Window::Generateenemies(playeramount);
+            Game_Window::Generateenemies(playeramount,aliveStatus);
         }
         break;
     case Qt::Key_Space:
@@ -58,21 +58,27 @@ void Game_Window::keyPressEvent(QKeyEvent *event) {
 }
 
 
-void Game_Window::Generateenemies(int numberofplayers)
+void Game_Window::Generateenemies(int numberofplayers,std::vector<bool> alivearray)
 {
+    std::vector<bool> aliveStatus(20, false);
     QHBoxLayout *layout = new QHBoxLayout;
     int imagesize = round(800/numberofplayers);
     for (int i = 0; i < numberofplayers; ++i) {
         QLabel *label = new QLabel(this);
+
         if (i==aimplayerindex){
             QPixmap pixmap(":/ress/resources/aim.png"); // Replace with the correct path
             pixmap = pixmap.scaled(imagesize, imagesize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             label->setPixmap(pixmap);
-        }else{
+        }else if(aliveStatus[i]==true){
             QPixmap pixmap(":/ress/resources/image.png"); // Replace with the correct path
             pixmap = pixmap.scaled(imagesize, imagesize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             label->setPixmap(pixmap);
-        };
+        }else{
+            QPixmap pixmap(":/ress/resources/dead.png"); // Replace with the correct path
+            pixmap = pixmap.scaled(imagesize, imagesize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            label->setPixmap(pixmap);
+        }
 
 
 

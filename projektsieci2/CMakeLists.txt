@@ -49,6 +49,10 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         server/serverwindow.ui
         client/Game_state_client.h
         client/Game_state_client.cpp
+        server/Host_window.h server/Host_window.cpp
+        server/hostwindow.ui
+
+
 
     )
 # Define target properties for Android with Qt 6 as:

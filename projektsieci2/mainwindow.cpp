@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "client/connect_window.h"
+#include "server/Host_window.h"
 
 
 
@@ -33,6 +34,8 @@ void MainWindow::onClientButtonClicked(){
     // this->hide();
 }
 void MainWindow::onServerButtonClicked(){
-    this->close();
+    Host_window *hostWindow = new Host_window(this);
+    hostWindow->setAttribute(Qt::WA_DeleteOnClose);
+    hostWindow->show();
 }
 

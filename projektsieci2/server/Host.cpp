@@ -1,3 +1,12 @@
+#include "Host.h"
+
+Host::Host() {}
+
+
+
+
+
+
 #include "connect_window.h"
 #include "client/ui_connectwindow.h"
 #include "Game_window.h"

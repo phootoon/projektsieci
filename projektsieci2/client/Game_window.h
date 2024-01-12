@@ -21,7 +21,8 @@ public:
     QString ip;
     int playeramount = 10;
     int aimplayerindex = 0;
-    void Generateenemies(int numberofplayers);
+    std::vector<bool> aliveStatus;
+    void Generateenemies(int numberofplayers, std::vector<bool> alivearray);
     void paintEvent(QPaintEvent *event) override; // For drawing the background image
     void keyPressEvent(QKeyEvent *event) override;
     // QLabel Painpixmap(std::string);
