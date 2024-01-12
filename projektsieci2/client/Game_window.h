@@ -25,6 +25,7 @@ public:
     void Generateenemies(int numberofplayers, std::vector<bool> alivearray);
     void paintEvent(QPaintEvent *event) override; // For drawing the background image
     void keyPressEvent(QKeyEvent *event) override;
+
     // QLabel Painpixmap(std::string);
 
 

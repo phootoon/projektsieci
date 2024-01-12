@@ -16,7 +16,7 @@ public:
     void setAliveStatus(int playerId, bool alive);
     void setConnectedStatus(int playerId, bool connected);
     void setTarget(int playerId, int targetId);
-    void deletePlayer(int playerId, Game_state_client game_state_client);
+    void deletePlayer(int playerId, Game_state_client ame_state_client);
 
 private:
     int numPlayers;

@@ -102,8 +102,6 @@ void TcpServer::onNewConnection()
 
     connect(client, &QTcpSocket::readyRead, this, &TcpServer::onReadyRead);
     connect(client, &QTcpSocket::disconnected, this, &TcpServer::onClientDisconnected);
-    //dodaj wysyłanie inta numberOfPlayers
-
 }
 
 void TcpServer::onReadyRead(){
