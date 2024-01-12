@@ -6,5 +6,7 @@
         <file>resources/connect.png</file>
         <file>resources/mainmenu.png</file>
         <file>resources/image.png</file>
+        <file>resources/aim.png</file>
+        <file>resources/dead.png</file>
     </qresource>
 </RCC>

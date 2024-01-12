@@ -2,19 +2,23 @@
 #include "client/ui_gamewindow.h"
 #include <QLabel>
 #include <QPixmap>
+#include <QPalette>
+#include <QPainter>
+#include <QKeyEvent>
 #include "Client.h"
+#include "../server/Game_state.h"
+
 
 Game_Window::Game_Window(QWidget *parent)
-    :QMainWindow(parent)
-    ,ui(new Ui::Game_Window)
 {
-    ui->setupUi(this);
-    connect(ui->rightaim, &QPushButton::clicked, this, &Game_Window::onRightButtonClicked);
-    connect(ui->leftaim, &QPushButton::clicked, this, &Game_Window::onLeftButtonClicked);
-    connect(ui->shoot, &QPushButton::clicked, this, &Game_Window::onShootButtonClicked);
-    connect(ui->aim, &QPushButton::clicked, this, &Game_Window::onAimButtonClicked);
-    connect(ui->exit, &QPushButton::clicked, this, &Game_Window::onExitButtonClicked);
+    setFixedSize(720, 480);
+
+    QWidget *centralWidget = new QWidget(this);
+    setCentralWidget(centralWidget);
+    Generateenemies(playeramount);
 }
+
+
 
 
 Game_Window::~Game_Window()
@@ -22,30 +26,55 @@ Game_Window::~Game_Window()
     delete ui;
 }
 
-void Game_Window::onShootButtonClicked(){
-    emit buttonPressed(1);
+void Game_Window::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+    QPixmap background(":/ress/resources/gamewindowbackground.jpg");
+    painter.drawPixmap(0, 0, width(), height(), background);
 }
-void Game_Window::onAimButtonClicked(){
-    emit buttonPressed(2);
+void Game_Window::keyPressEvent(QKeyEvent *event) {
+    switch (event->key()) {
+    case Qt::Key_Left:
+        if(aimplayerindex > 0){
+            aimplayerindex --;
+            Game_Window::Generateenemies(playeramount);
+        }
+        break;
+    case Qt::Key_Right:
+        if(aimplayerindex < playeramount-1){
+            aimplayerindex ++;
+            Game_Window::Generateenemies(playeramount);
+        }
+        break;
+    case Qt::Key_Space:
+        // Logic for starting shooting
+        break;
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
+        // Logic for shooting
+        break;
+    default:
+        QMainWindow::keyPressEvent(event); // Make sure to call the base class implementation
+    }
 }
-void Game_Window::onRightButtonClicked() {
-    emit buttonPressed(3);
-}
-void Game_Window::onLeftButtonClicked(){
-    emit buttonPressed(4);
-}
-void Game_Window::onExitButtonClicked(){
-    emit buttonPressed(9);
-}
+
+
 void Game_Window::Generateenemies(int numberofplayers)
 {
     QHBoxLayout *layout = new QHBoxLayout;
     int imagesize = round(800/numberofplayers);
     for (int i = 0; i < numberofplayers; ++i) {
         QLabel *label = new QLabel(this);
-        QPixmap pixmap(":/ress/resources/image.png"); // Replace with the correct path
-        pixmap = pixmap.scaled(imagesize, imagesize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        label->setPixmap(pixmap);
+        if (i==aimplayerindex){
+            QPixmap pixmap(":/ress/resources/aim.png"); // Replace with the correct path
+            pixmap = pixmap.scaled(imagesize, imagesize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            label->setPixmap(pixmap);
+        }else{
+            QPixmap pixmap(":/ress/resources/image.png"); // Replace with the correct path
+            pixmap = pixmap.scaled(imagesize, imagesize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            label->setPixmap(pixmap);
+        };
+
+
 
         layout->addWidget(label);
     }
