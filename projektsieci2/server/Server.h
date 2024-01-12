@@ -12,6 +12,7 @@ class TcpServer : public QObject
     Q_OBJECT
 public:
     explicit TcpServer(QObject *parent = nullptr, int numPlayers = 0);
+    int numberOfPlayers;
 
 signals:
     void newMessage(const QByteArray &ba);
@@ -21,6 +22,7 @@ private slots:
     void onReadyRead();
     void onClientDisconnected();
     void onNewMessage(const QByteArray &ba);
+
 
 private:
     int numPlayers;

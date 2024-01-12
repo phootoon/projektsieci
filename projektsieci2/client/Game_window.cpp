@@ -62,7 +62,7 @@ void Game_Window::Generateenemies(int numberofplayers,std::vector<bool> alivearr
 {
     std::vector<bool> aliveStatus(20, false);
     QHBoxLayout *layout = new QHBoxLayout;
-    int imagesize = round(800/numberofplayers);
+    int imagesize = round(500/numberofplayers);
     for (int i = 0; i < numberofplayers; ++i) {
         QLabel *label = new QLabel(this);
 
