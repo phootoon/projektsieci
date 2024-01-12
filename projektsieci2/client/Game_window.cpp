@@ -8,6 +8,30 @@
 #include "Client.h"
 #include "../server/Game_state.h"
 
+QByteArray serializeInt(int data) {
+    QByteArray byteArray;
+    QDataStream stream(&byteArray, QIODevice::WriteOnly);
+    stream << data;
+
+    return byteArray;
+}
+QVector<bool> deserializeQByteArray(const QByteArray& byteArray)
+{
+    QVector<bool> result;
+
+    QDataStream stream(byteArray);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    while (!stream.atEnd())
+    {
+        bool element;
+        stream >> element;
+        result.append(element);
+    }
+
+    return result;
+}
+
 
 Game_Window::Game_Window(QWidget *parent)
 {
@@ -16,6 +40,7 @@ Game_Window::Game_Window(QWidget *parent)
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
     Generateenemies(playeramount,aliveStatus);
+
 }
 
 
@@ -37,20 +62,25 @@ void Game_Window::keyPressEvent(QKeyEvent *event) {
         if(aimplayerindex > 0){
             aimplayerindex --;
             Game_Window::Generateenemies(playeramount,aliveStatus);
+
+            emit handleMovement(serializeInt(4));
         }
         break;
     case Qt::Key_Right:
         if(aimplayerindex < playeramount-1){
             aimplayerindex ++;
             Game_Window::Generateenemies(playeramount,aliveStatus);
+            emit handleMovement(serializeInt(3));
         }
         break;
     case Qt::Key_Space:
         // Logic for starting shooting
+        emit handleMovement(serializeInt(1));
         break;
     case Qt::Key_Enter:
     case Qt::Key_Return:
         // Logic for shooting
+        emit handleMovement(serializeInt(3));
         break;
     default:
         QMainWindow::keyPressEvent(event); // Make sure to call the base class implementation
@@ -60,7 +90,7 @@ void Game_Window::keyPressEvent(QKeyEvent *event) {
 
 void Game_Window::Generateenemies(int numberofplayers,std::vector<bool> alivearray)
 {
-    std::vector<bool> aliveStatus(20, false);
+    // std::vector<bool> aliveStatus(20, false);
     QHBoxLayout *layout = new QHBoxLayout;
     int imagesize = round(500/numberofplayers);
     for (int i = 0; i < numberofplayers; ++i) {
@@ -90,5 +120,10 @@ void Game_Window::Generateenemies(int numberofplayers,std::vector<bool> alivearr
     centralWidget->setLayout(layout);
     this->setCentralWidget(centralWidget);
 };
+
+void statusChanged(const QByteArray &status){
+    aliveStatus = deserializeQByteArray(status);
+
+}
 
 

@@ -18,7 +18,8 @@ void Host_window::onLineEditEditingFinished(){
     if (numberOfPlayers<2 && numberOfPlayers>50){
         numberOfPlayers = 20;
     }
-    TcpServer *tcpserver= new TcpServer(this);
+    // TcpServer *tcpserver= new TcpServer(this);
+    TcpServer server(nullptr, numberOfPlayers);
 
 
 }

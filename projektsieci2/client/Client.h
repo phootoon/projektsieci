@@ -3,20 +3,22 @@
 
 #include <QObject>
 #include <QTcpSocket>
-#include "Game_state_client.h"
 
 class TcpClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit TcpClient(QObject *parent = nullptr, int numPlayers = 0);
+    explicit TcpClient(QObject *parent = nullptr);
 
 signals:
     void newMessage(const QByteArray &ba);
+    void statusChanged(const QByteArray &i);
+    void showDeathScreen();
 
 public slots:
     void connectToServer(const QString &ip, const QString &port);
     void sendMessage(const QByteArray &message);
+    void handleMovement(const QByteArray &moveData);
 
 private slots:
     void onConnected();
@@ -25,7 +27,6 @@ private slots:
 
 private:
     int numPlayers;
-    Game_state_client game_state;
     QTcpSocket _socket;
 };
 

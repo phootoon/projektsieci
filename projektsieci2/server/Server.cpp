@@ -90,6 +90,8 @@ void TcpServer::onNewConnection()
     game_state.setConnectedStatus(ix, true);
     game_state.setAliveStatus(ix, true);
     const auto client = _server.nextPendingConnection();
+    client->write(serializeInt(numPlayers));
+    client->flush();
     if(client == nullptr) {
         return;
     }
@@ -101,6 +103,7 @@ void TcpServer::onNewConnection()
     connect(client, &QTcpSocket::readyRead, this, &TcpServer::onReadyRead);
     connect(client, &QTcpSocket::disconnected, this, &TcpServer::onClientDisconnected);
     //dodaj wysyłanie inta numberOfPlayers
+
 }
 
 void TcpServer::onReadyRead(){

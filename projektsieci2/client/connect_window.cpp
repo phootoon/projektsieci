@@ -6,11 +6,13 @@
 #include <QRegularExpression>
 
 
+
 Connect_window::Connect_window(QWidget *parent)
     : QWidget(parent), ui(new Ui::Connect_window) {
     ui->setupUi(this); // Display 4 on the LCD when the window is created
     connect(ui->lineEdit, &QLineEdit::editingFinished, this, &Connect_window::onLineEditEditingFinished);
     connect(ui->linePort, &QLineEdit::editingFinished, this, &Connect_window::onLineEditingPortFinished);
+
 }
 
 Connect_window::~Connect_window() {
@@ -23,21 +25,38 @@ void Connect_window::onLineEditEditingFinished(){
 
 void Connect_window::onLineEditingPortFinished(){
 
-    TcpClient *tcpclient = new TcpClient(this);
+
     userInputIP = ui->lineEdit->text();
     userInputPort = ui->linePort->text();
-    quint16 port  = userInputPort.toUShort();
+    TcpClient tcpclient (nullptr);
+
+
     // if(tcpclient->tryConnectToServer(userInputIP,port,3000)){
     // tryConnectToServer(userInputIP,port, 150)
     Game_Window *gameWindow = new Game_Window(this);
+    connect(gameWindow, &Game_Window::handleMovement, &tcpclient, &TcpClient::sendMessage);
+    connect()
+    //trzeba połączyć gamewindow  status changed z tablicą odbieraną przez klienta
+    //ogarnąć status changed w main window
+    //definicje std::vector<bool> aliveStatus;
     gameWindow->playeramount = 20;
     gameWindow->setAttribute(Qt::WA_DeleteOnClose);
+
 
     // Game_Window(gameWindow).ip = userInputIP;
     // Show the Connect_window
     // gameWindow->Generateenemies(30);
+
     gameWindow->show();
-    TcpClient(tcpclient).connectToServer(userInputIP,userInputPort);
+
+
+
+
+
+
+    // connect(Game_window->linePort, &QLineEdit::editingFinished, this, &Connect_window::onLineEditingPortFinished);
+    // TcpClient *tcpclient = new TcpClient(this);
+    // tcpClient.connectToServer(userInputIP,userInputPort);
     // }
 };
 

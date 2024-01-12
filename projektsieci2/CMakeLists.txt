@@ -30,11 +30,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         client/Game_window.h client/Game_window.cpp
         client/Lobby_window.h client/Lobby_window.cpp
         client/main.cpp
-        client/Network_client.h client/Network_client.cpp
+
         server/Game_state.h server/Game_state.cpp
         server/main.cpp
-        server/Network_server.h server/Network_server.cpp
-        server/Player.h server/Player.cpp
+
+
         server/Server.h server/Server.cpp
         client/Death_screen.ui
 

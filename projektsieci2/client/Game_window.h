@@ -28,10 +28,13 @@ public:
     // QLabel Painpixmap(std::string);
 
 
-    // signals:
+    signals:
+        void handleMovement(const QByteArray &keyPressed);
+        //uwaga pointer
     //     void buttonPressed(int value);
 
 public slots:
+        void statusChanged(const QByteArray &status);
               // void onRightButtonClicked();
               // void onLeftButtonClicked();
               // void onShootButtonClicked();

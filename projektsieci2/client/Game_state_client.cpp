@@ -34,7 +34,7 @@ void Game_state_client::setConnectedStatus(int playerId, bool connected) {
 void Game_state_client::deletePlayer(int PlayerId, Game_state_client game_state){
     game_state.setAliveStatus(PlayerId, true);
     game_state.setConnectedStatus(PlayerId, false);
-    // game_state.setTarget(PlayerId, 0);
+    game_state.setTarget(PlayerId, 0);
     // to nie działą
 }
 
