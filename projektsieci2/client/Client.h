@@ -3,12 +3,13 @@
 
 #include <QObject>
 #include <QTcpSocket>
+#include "Game_state_client.h"
 
 class TcpClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit TcpClient(QObject *parent = nullptr);
+    explicit TcpClient(QObject *parent = nullptr, int numPlayers = 0);
 
 signals:
     void newMessage(const QByteArray &ba);
@@ -23,6 +24,8 @@ private slots:
     void onErrorOccurred(QAbstractSocket::SocketError error);
 
 private:
+    int numPlayers;
+    Game_state game_state;
     QTcpSocket _socket;
 };
 
