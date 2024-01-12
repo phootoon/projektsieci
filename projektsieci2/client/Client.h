@@ -25,7 +25,7 @@ private slots:
 
 private:
     int numPlayers;
-    Game_state game_state;
+    Game_state_client game_state;
     QTcpSocket _socket;
 };
 

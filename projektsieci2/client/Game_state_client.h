@@ -3,9 +3,9 @@
 
 #include <vector>
 
-class Game_state {
+class Game_state_client {
 public:
-    Game_state(int numPlayers);
+    Game_state_client(int numPlayers);
 
     int getNumPlayers() const;
 
@@ -16,7 +16,7 @@ public:
     void setAliveStatus(int playerId, bool alive);
     void setConnectedStatus(int playerId, bool connected);
     void setTarget(int playerId, int targetId);
-    void deletePlayer(int playerId, Game_state game_state);
+    void deletePlayer(int playerId, Game_state_client game_state_client);
 
 private:
     int numPlayers;
