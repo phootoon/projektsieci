@@ -52,7 +52,7 @@ int deserializeIntt(const QByteArray& byteArray)
     return result;
 }
 
-QByteArray serializeInt(int data) {
+QByteArray serializeInt1(int data) {
     QByteArray byteArray;
     QDataStream stream(&byteArray, QIODevice::WriteOnly);
     stream << data;
@@ -89,8 +89,9 @@ void TcpServer::onNewConnection()
     int ix = findFreeSlot(game_state.getConnectedStatus());
     game_state.setConnectedStatus(ix, true);
     game_state.setAliveStatus(ix, true);
+    game_state.setTarget(ix, 0);
     const auto client = _server.nextPendingConnection();
-    client->write(serializeInt(numPlayers));
+    client->write(serializeInt1(numPlayers));
     client->flush();
     if(client == nullptr) {
         return;
@@ -130,6 +131,7 @@ void TcpServer::onReadyRead(){
             if (prob > generateRandomFloat()){
                 QTcpSocket* client = _clients.value(target, nullptr);
                 client->write(0);
+                game_state.setAliveStatus(ix, false);
                 auto message = serializeArray(game_state.getAliveStatus(), numPlayers);
                 emit newMessage(message);
             }

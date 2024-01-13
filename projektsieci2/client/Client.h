@@ -18,7 +18,7 @@ signals:
 public slots:
     void connectToServer(const QString &ip, const QString &port);
     void sendMessage(const QByteArray &message);
-    void handleMovement(const QByteArray &moveData);
+    //void handleMovement(const QByteArray &moveData);
 
 private slots:
     void onConnected();

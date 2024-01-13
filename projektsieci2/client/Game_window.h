@@ -18,7 +18,6 @@ public:
     Game_Window(QWidget *parent = nullptr);
     ~Game_Window();
     QString ip;
-    int playeramount = 10;
     int aimplayerindex = 0;
     QVector<bool> aliveStatus;
     void Generateenemies(int numberofplayers, QVector<bool> alivearray);

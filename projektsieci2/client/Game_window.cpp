@@ -1,12 +1,11 @@
 #include "Game_window.h"
-#include "client/ui_gamewindow.h"
+
 #include <QLabel>
 #include <QPixmap>
 #include <QPalette>
 #include <QPainter>
 #include <QKeyEvent>
-#include "Client.h"
-#include "../server/Game_state.h"
+
 
 QByteArray serializeInt(int data) {
     QByteArray byteArray;
@@ -15,7 +14,7 @@ QByteArray serializeInt(int data) {
 
     return byteArray;
 }
-QVector<bool> deserializeQByteArray(const QByteArray& byteArray)
+QVector<bool> deserializeQByteArrayy(const QByteArray& byteArray)
 {
     QVector<bool> result;
 
@@ -36,10 +35,8 @@ QVector<bool> deserializeQByteArray(const QByteArray& byteArray)
 Game_Window::Game_Window(QWidget *parent)
 {
     setFixedSize(720, 480);
-
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
-
 }
 
 
@@ -58,17 +55,17 @@ void Game_Window::paintEvent(QPaintEvent *event) {
 void Game_Window::keyPressEvent(QKeyEvent *event) {
     switch (event->key()) {
     case Qt::Key_Left:
-        if(aimplayerindex > 0){
+        if((aimplayerindex > 0) && (aimplayerindex < aliveStatus.size() - 1)){
             aimplayerindex --;
-            Game_Window::Generateenemies(playeramount,aliveStatus);
+            Game_Window::Generateenemies(aliveStatus.size(),aliveStatus);
 
             emit handleMovement(serializeInt(4));
         }
         break;
     case Qt::Key_Right:
-        if(aimplayerindex < playeramount-1){
+        if((aimplayerindex < aliveStatus.size() - 1) && (aimplayerindex > 0)){
             aimplayerindex ++;
-            Game_Window::Generateenemies(playeramount,aliveStatus);
+            Game_Window::Generateenemies(aliveStatus.size(),aliveStatus);
             emit handleMovement(serializeInt(3));
         }
         break;
@@ -121,8 +118,8 @@ void Game_Window::Generateenemies(int numberofplayers,QVector<bool> aliveStatus)
 };
 
 void Game_Window::statusChanged(const QByteArray &status){
-    QVector<bool> aliveStatus = deserializeQByteArray(status);
-    Game_Window::Generateenemies(aliveStatus.size() / 4,aliveStatus);
+    QVector<bool> aliveStatus = deserializeQByteArrayy(status);
+    Game_Window::Generateenemies(aliveStatus.size(),aliveStatus);
 }
 
 

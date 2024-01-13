@@ -4,7 +4,7 @@
 Game_state::Game_state(int numPlayers) : numPlayers(numPlayers) {
     aliveStatus.resize(numPlayers, false);
     connectedStatus.resize(numPlayers, false);
-    targets.resize(numPlayers, 0);
+    targets.resize(numPlayers, -1);
     probabilities.resize(numPlayers, 0.0f);
 }
 
