@@ -35,10 +35,7 @@ void Connect_window::onLineEditingPortFinished(){
     // tryConnectToServer(userInputIP,port, 150)
     Game_Window *gameWindow = new Game_Window(this);
     connect(gameWindow, &Game_Window::handleMovement, &tcpclient, &TcpClient::sendMessage);
-    connect()
-    //trzeba połączyć gamewindow  status changed z tablicą odbieraną przez klienta
-    //ogarnąć status changed w main window
-    //definicje std::vector<bool> aliveStatus;
+    connect(&tcpclient, &TcpClient::statusChanged, gameWindow, &Game_Window::statusChanged);
     gameWindow->playeramount = 20;
     gameWindow->setAttribute(Qt::WA_DeleteOnClose);
 

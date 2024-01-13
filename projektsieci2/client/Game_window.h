@@ -5,7 +5,6 @@
 #include <QPushButton>
 #include <QGridLayout>
 #include <QLabel>
-#include <vector>
 
 
 QT_BEGIN_NAMESPACE
@@ -21,8 +20,8 @@ public:
     QString ip;
     int playeramount = 10;
     int aimplayerindex = 0;
-    std::vector<bool> aliveStatus;
-    void Generateenemies(int numberofplayers, std::vector<bool> alivearray);
+    QVector<bool> aliveStatus;
+    void Generateenemies(int numberofplayers, QVector<bool> alivearray);
     void paintEvent(QPaintEvent *event) override; // For drawing the background image
     void keyPressEvent(QKeyEvent *event) override;
 
