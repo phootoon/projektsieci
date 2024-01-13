@@ -39,7 +39,6 @@ Game_Window::Game_Window(QWidget *parent)
 
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
-    Generateenemies(playeramount,aliveStatus);
 
 }
 
@@ -88,7 +87,7 @@ void Game_Window::keyPressEvent(QKeyEvent *event) {
 }
 
 
-void Game_Window::Generateenemies(int numberofplayers,std::vector<bool> alivearray)
+void Game_Window::Generateenemies(int numberofplayers,QVector<bool> aliveStatus)
 {
     // std::vector<bool> aliveStatus(20, false);
     QHBoxLayout *layout = new QHBoxLayout;
@@ -121,9 +120,9 @@ void Game_Window::Generateenemies(int numberofplayers,std::vector<bool> alivearr
     this->setCentralWidget(centralWidget);
 };
 
-void statusChanged(const QByteArray &status){
-    aliveStatus = deserializeQByteArray(status);
-
+void Game_Window::statusChanged(const QByteArray &status){
+    QVector<bool> aliveStatus = deserializeQByteArray(status);
+    Game_Window::Generateenemies(aliveStatus.size() / 4,aliveStatus);
 }
 
 
