@@ -11,7 +11,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 {
     ui->setupUi(this);
-    // Assuming your button is named pushButton in the ui file
     connect(ui->PushButton, &QPushButton::clicked, this, &MainWindow::onCloseButtonClicked);
     connect(ui->client, &QPushButton::clicked, this, &MainWindow::onClientButtonClicked);
     connect(ui->server, &QPushButton::clicked, this, &MainWindow::onServerButtonClicked);
@@ -25,13 +24,12 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::onCloseButtonClicked() {
-    this->close(); // This will close the application
+    this->close();
 }
 void MainWindow::onClientButtonClicked(){
-    Connect_window *connectWindow = new Connect_window(this); // Create a new Connect_window
-    connectWindow->setAttribute(Qt::WA_DeleteOnClose); // Ensure it's deleted once closed
-    connectWindow->show(); // Show the Connect_window
-    // this->hide();
+    Connect_window *connectWindow = new Connect_window(this);
+    connectWindow->setAttribute(Qt::WA_DeleteOnClose);
+    connectWindow->show();
 }
 void MainWindow::onServerButtonClicked(){
     Host_window *hostWindow = new Host_window(this);

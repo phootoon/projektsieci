@@ -4,7 +4,6 @@
 #include <QTcpServer>
 #include <QHostAddress>
 #include <QObject>
-#include <random>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QIODevice>
@@ -20,44 +19,13 @@ float calculateProb(std::chrono::time_point<std::chrono::high_resolution_clock> 
     return probability;
 }
 
-int getKeyByValue(QHash<int, QTcpSocket*>& hash, QTcpSocket* var) {
+int getKeyByValue(QHash<int,int>& hash, int client) {
     for (auto it = hash.constBegin(); it != hash.constEnd(); ++it) {
-        if (it.value() == var) {
+        if (it.value() == client) {
             return it.key();
         }
     }
     return -1;
-}
-
-QByteArray serializeArray(const std::vector<bool>& dataArray, int size) {
-    QByteArray serializedData;
-    QDataStream stream(&serializedData, QIODevice::WriteOnly);
-    int arraySize = dataArray.size();
-    stream << arraySize;
-
-    std::vector<char> charArray(dataArray.begin(), dataArray.end());
-
-    stream.writeRawData(charArray.data(), charArray.size());
-
-    return serializedData;
-}
-
-int deserializeIntt(const QByteArray& byteArray)
-{
-    int result = 0;
-    QDataStream stream(byteArray);
-    stream.setByteOrder(QDataStream::LittleEndian);
-    stream >> result;
-
-    return result;
-}
-
-QByteArray serializeInt1(int data) {
-    QByteArray byteArray;
-    QDataStream stream(&byteArray, QIODevice::WriteOnly);
-    stream << data;
-
-    return byteArray;
 }
 
 int findFreeSlot(const std::vector<bool>& boolArray) {
@@ -69,19 +37,21 @@ int findFreeSlot(const std::vector<bool>& boolArray) {
     return -1;
 }
 
-float generateRandomFloat() {
-    static std::mt19937 gen(std::random_device{}());
-    std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
-    return distribution(gen);
+double getRandomNumber() {
+    srand((unsigned int)time(NULL));
+    int randomInt = rand();
+    double randomDouble = (double)randomInt / RAND_MAX;
+
+    return randomDouble;
 }
 
-TcpServer::TcpServer(QObject *parent,  int numPlayers) : QObject(parent), game_state(numPlayers), numPlayers(numPlayers)
+TcpServer::TcpServer(QObject *parent,  int numPlayers) : QObject(parent), game_state(numPlayers), numPlayers(numPlayers), _server(45000,numPlayers)
 {
-    connect(&_server, &QTcpServer::newConnection, this, &TcpServer::onNewConnection);
+    connect(&_server.getServerBridge(), &MyServerBridge::newConnection, this, &TcpServer::onNewConnection);
     connect(this, &TcpServer::newMessage, this, &TcpServer::onNewMessage);
-    if(_server.listen(QHostAddress::Any, 45000)) {
-        qInfo() << "Listening ...";
-    }
+    connect(&_server.getServerBridge(),&MyServerBridge::readyRead, this, &TcpServer::onReadyRead);
+    connect(this, &TcpServer::clientDisconnected, this, &TcpServer::onClientDisconnected);
+    _server.run();
 }
 
 void TcpServer::onNewConnection()
@@ -90,81 +60,77 @@ void TcpServer::onNewConnection()
     game_state.setConnectedStatus(ix, true);
     game_state.setAliveStatus(ix, true);
     game_state.setTarget(ix, 0);
-    const auto client = _server.nextPendingConnection();
-    client->write(serializeInt1(numPlayers));
-    client->flush();
-    if(client == nullptr) {
+    const int client = _server.nextPendingConnection();
+
+    //wysłać alivestatus
+    std::vector<bool> vec = game_state.getAliveStatus();
+    std::vector<char> charVector(vec.begin(), vec.end());
+    write(client, &charVector, numPlayers);
+    if(client == -1) {
         return;
     }
 
     qInfo() << "New client connected.";
 
     _clients.insert(ix, client);
-
-    connect(client, &QTcpSocket::readyRead, this, &TcpServer::onReadyRead);
-    connect(client, &QTcpSocket::disconnected, this, &TcpServer::onClientDisconnected);
 }
 
-void TcpServer::onReadyRead(){
-    const auto client = qobject_cast<QTcpSocket*>(sender());
+void TcpServer::onReadyRead(int client){
+    qInfo() << "wiadomosc";
 
-    if(client == nullptr) {
+    if(client == -1) {
         return;
     }
-
-    auto message = client->readAll();
-    int ix;
-    int command;
+    //czytaj
+    char message;
+    int bytesRead = read(client, &message, 1);
+    if (bytesRead == 0){
+        emit clientDisconnected(client);
+        return;
+    }
+    int ix = getKeyByValue(_clients, client);
     int target;
-    float prob;
+    double prob;
     using Clock = std::chrono::high_resolution_clock;
-    int dsMessage = deserializeIntt(message);
     auto now = Clock::now();
     if (ix >= 0 and ix < numPlayers){
-        switch(command){
-        // case 0:
-        //     jestem aktywny
-        case 1:
+        switch(message){
+        case '1':
+            qInfo() << "strzelam";
             //strzelam
             target = game_state.getTarget(ix);
             prob = calculateProb(game_state.getAimTS(ix), now);
-            if (prob > generateRandomFloat()){
-                QTcpSocket* client = _clients.value(target, nullptr);
-                client->write(0);
+            if (prob > getRandomNumber()){
+                int deadClient = _clients.value(target);
+                char msg = '0';
+                write(deadClient, &msg, 1);
                 game_state.setAliveStatus(ix, false);
-                auto message = serializeArray(game_state.getAliveStatus(), numPlayers);
+                auto message = game_state.getAliveStatus();
                 emit newMessage(message);
             }
-
-        case 2:
+        case '2':
             //celuję
             game_state.setAimTS(ix, now);
-        case 3:
+        case '3':
             //zmieniam cel w prawo
             target = game_state.getTarget(ix);
             if  (target >= 0 and target < numPlayers - 1){
                 game_state.setTarget(ix, target + 1);
             }
-        case 4:
+        case '4':
             //zmieniam cel w lewo
             target = game_state.getTarget(ix);
             if  (target > 0 and target < numPlayers){
                 game_state.setTarget(ix, target - 1);
             }
-        case 5:
-            //zgłaszam gotowość
-            game_state.setReady(ix, true);
-        case 6:
-            game_state.setVote(ix, true);
         }
     }
 }
 
-void TcpServer::onClientDisconnected()
+void TcpServer::onClientDisconnected(int client)
 {
-    const auto client = qobject_cast<QTcpSocket*>(sender());
 
-    if(client == nullptr) {
+    if(client == -1) {
         return;
     }
     auto clientToRemove = getKeyByValue(_clients, client);
@@ -172,10 +138,10 @@ void TcpServer::onClientDisconnected()
     _clients.remove(clientToRemove);
 }
 
-void TcpServer::onNewMessage(const QByteArray &ba)
+void TcpServer::onNewMessage(const std::vector<bool> &ba)
 {
+    std::vector<char> charVector(ba.begin(), ba.end());
     for(const auto &client : std::as_const(_clients)) {
-        client->write(ba);
-        client->flush();
+        write(client, &charVector, numPlayers);
     }
 }

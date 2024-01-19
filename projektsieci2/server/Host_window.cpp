@@ -13,15 +13,12 @@ Host_window::~Host_window() {
 
 void Host_window::onLineEditEditingFinished(){
     userInputIP = ui->lineEdit->text();
-    int numberOfPlayers = 0;
+    int numberOfPlayers;
     numberOfPlayers = userInputIP.toInt();
     if (numberOfPlayers<2 && numberOfPlayers>50){
         numberOfPlayers = 20;
     }
-    // TcpServer *tcpserver= new TcpServer(this);
-    TcpServer server(nullptr, numberOfPlayers);
-
-
+    TcpServer *server = new TcpServer(this, numberOfPlayers);
 }
 
 

@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QTcpSocket>
-
+#include <QVector>
 class TcpClient : public QObject
 {
     Q_OBJECT
@@ -12,13 +12,12 @@ public:
 
 signals:
     void newMessage(const QByteArray &ba);
-    void statusChanged(const QByteArray &i);
+    void statusChanged(const QVector<char> &i);
     void showDeathScreen();
 
 public slots:
-    void connectToServer(const QString &ip, const QString &port);
-    void sendMessage(const QByteArray &message);
-    //void handleMovement(const QByteArray &moveData);
+    void connectToServer(const QString &ip, const quint16 &port);
+    void sendMessage(char message);
 
 private slots:
     void onConnected();

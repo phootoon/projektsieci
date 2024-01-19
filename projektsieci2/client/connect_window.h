@@ -1,6 +1,7 @@
 #ifndef CONNECT_WINDOW_H
 #define CONNECT_WINDOW_H
 #include <QWidget>
+#include "Client.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Connect_window; }
@@ -14,6 +15,7 @@ public:
     QString userInputIP;
     QString userInputPort;
     bool isValidIPAddress(const QString& ip);
+    TcpClient *tcpclient;
 
 public slots:
     void onLineEditEditingFinished();

@@ -1,6 +1,5 @@
 #include "game_state.h"
 
-// Constructor
 Game_state::Game_state(int numPlayers) : numPlayers(numPlayers) {
     aliveStatus.resize(numPlayers, false);
     connectedStatus.resize(numPlayers, false);

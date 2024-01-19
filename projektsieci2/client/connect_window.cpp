@@ -25,12 +25,20 @@ void Connect_window::onLineEditEditingFinished(){
 void Connect_window::onLineEditingPortFinished(){
     userInputIP = ui->lineEdit->text();
     userInputPort = ui->linePort->text();
-    TcpClient tcpclient (nullptr);
+    bool conversionOK;
+    quint16 port = userInputPort.toUInt(&conversionOK);
 
+    if (conversionOK) {
+        qDebug() << "Port: " << port;
+    } else {
+        qDebug() << "Invalid port input!";
+    }
+    TcpClient *tcpclient = new TcpClient(this);
+    tcpclient->connectToServer(userInputIP, port);
     Game_Window *gameWindow = new Game_Window(this);
     gameWindow->setAttribute(Qt::WA_DeleteOnClose);
-    connect(gameWindow, &Game_Window::handleMovement, &tcpclient, &TcpClient::sendMessage);
-    connect(&tcpclient, &TcpClient::statusChanged, gameWindow, &Game_Window::statusChanged);
+    connect(gameWindow, &Game_Window::handleMovement, tcpclient, &TcpClient::sendMessage);
+    connect(tcpclient, &TcpClient::statusChanged, gameWindow, &Game_Window::statusChanged);
     gameWindow->show();
 };
 

@@ -1,7 +1,24 @@
 #include "Client.h"
 #include <QByteArray>
 #include <QDataStream>
-#include "Game_state_client.h"
+#include <QVector>
+
+QVector<char> readBinaryDataFromSocket(QTcpSocket& socket) {
+    QVector<char> binaryData;
+
+    // Read binary data from the socket until there is no more available data
+    while (socket.bytesAvailable() > 0) {
+        char byte;
+        qint64 bytesRead = socket.read(&byte, sizeof(byte));
+
+        // Check if a byte was successfully read
+        if (bytesRead == sizeof(byte)) {
+            qInfo() << "przeczytało 1 bajt";
+            binaryData.append(byte);
+        }
+    }
+    return binaryData;
+}
 
 int findFirstDifferenceIndex(const QVector<bool>& qVector, const std::vector<bool>& stdVector) {
 
@@ -13,34 +30,6 @@ int findFirstDifferenceIndex(const QVector<bool>& qVector, const std::vector<boo
     return -1;
 }
 
-
-QVector<bool> deserializeQByteArray(const QByteArray& byteArray)
-{
-    QVector<bool> result;
-
-    QDataStream stream(byteArray);
-    stream.setByteOrder(QDataStream::LittleEndian);
-
-    while (!stream.atEnd())
-    {
-        bool element;
-        stream >> element;
-        result.append(element);
-    }
-
-    return result;
-}
-
-int deserializeInt(const QByteArray& byteArray)
-{
-    int result = 0;
-    QDataStream stream(byteArray);
-    stream.setByteOrder(QDataStream::LittleEndian);
-    stream >> result;
-
-    return result;
-}
-
 TcpClient::TcpClient(QObject *parent) : QObject(parent)
 {
     connect(&_socket, &QTcpSocket::connected, this, &TcpClient::onConnected);
@@ -48,14 +37,18 @@ TcpClient::TcpClient(QObject *parent) : QObject(parent)
     connect(&_socket, &QTcpSocket::readyRead, this, &TcpClient::onReadyRead);
 }
 
-void TcpClient::connectToServer(const QString &ip, const QString &port)
+void TcpClient::connectToServer(const QString &ip, const quint16 &port)
 {
-    _socket.connectToHost(ip, port.toUInt());
+    qInfo() << "connecting to host";
+    _socket.connectToHost(ip, port);
 }
 
-void TcpClient::sendMessage(const QByteArray &message)
+void TcpClient::sendMessage(char message)
 {
-    _socket.write(message);
+    QByteArray x;
+    x.append(message);
+    qInfo() << "sending message";
+    _socket.write(x);
     _socket.flush();
 }
 
@@ -66,25 +59,14 @@ void TcpClient::onConnected()
 
 void TcpClient::onReadyRead()
 {
-    Game_state_client* game_state = new Game_state_client(1);
-    const auto message = _socket.readAll();
-    if (message.length() == 4){
-        int dsMessage = deserializeInt(message);
-        if(dsMessage == 0){
-            emit showDeathScreen();
-        }
-        else{
-            Game_state_client* game_state = new Game_state_client(dsMessage);
-            //moze powodawac błąd
-        }
+    qInfo() << "wiadomość";
+    const auto message = readBinaryDataFromSocket(_socket);
+    if (message.length() == 1){
+        emit showDeathScreen();
     }
     else{
-        QVector<bool> alive_status_vec = deserializeQByteArray(message);
+        qInfo() << "client status changed";
         emit statusChanged(message);
-        for (int i = 0; i < alive_status_vec.size(); ++i)
-        {
-            game_state->setAliveStatus(i, alive_status_vec.at(i));
-        }
     }
 }
 void TcpClient::onErrorOccurred(QAbstractSocket::SocketError error)

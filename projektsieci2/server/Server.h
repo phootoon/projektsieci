@@ -6,6 +6,8 @@
 #include <QHash>
 #include <QTcpSocket>
 #include "Game_state.h"
+#include "_server.h"
+#include "myserverbridge.h"
 
 class TcpServer : public QObject
 {
@@ -15,13 +17,14 @@ public:
     int numberOfPlayers;
 
 signals:
-    void newMessage(const QByteArray &ba);
+    void newMessage(const std::vector<bool> &ba);
+    void clientDisconnected(int i);
 
 private slots:
     void onNewConnection();
-    void onReadyRead();
-    void onClientDisconnected();
-    void onNewMessage(const QByteArray &ba);
+    void onReadyRead(int client);
+    void onClientDisconnected(int client);
+    void onNewMessage(const std::vector<bool> &ba);
 
 
 private:
@@ -29,8 +32,8 @@ private:
     Game_state game_state;
     QString getClientKey(const QTcpSocket *client) const;
 
-    QTcpServer _server;
-    QHash<int, QTcpSocket*> _clients;
+    Server _server;
+    QHash<int, int> _clients;
 
 };
 

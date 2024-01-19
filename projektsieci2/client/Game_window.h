@@ -18,7 +18,7 @@ public:
     Game_Window(QWidget *parent = nullptr);
     ~Game_Window();
     QString ip;
-    int aimplayerindex = 0;
+    int aimplayerindex;
     QVector<bool> aliveStatus;
     void Generateenemies(int numberofplayers, QVector<bool> alivearray);
     void paintEvent(QPaintEvent *event) override; // For drawing the background image
@@ -28,12 +28,12 @@ public:
 
 
     signals:
-        void handleMovement(const QByteArray &keyPressed);
+        void handleMovement(const char keyPressed);
         //uwaga pointer
     //     void buttonPressed(int value);
 
 public slots:
-        void statusChanged(const QByteArray &status);
+        void statusChanged(const QVector<char> &i);
               // void onRightButtonClicked();
               // void onLeftButtonClicked();
               // void onShootButtonClicked();

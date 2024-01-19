@@ -29,10 +29,10 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         client/Death_screen.h client/Death_screen.cpp
         client/Game_window.h client/Game_window.cpp
         client/Lobby_window.h client/Lobby_window.cpp
-        client/main.cpp
+
 
         server/Game_state.h server/Game_state.cpp
-        server/main.cpp
+
 
 
         server/Server.h server/Server.cpp
@@ -45,12 +45,14 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         client/background.qrc
         client/connect_window.h client/connect_window.cpp
         client/connectwindow.ui
-        server/Server_window.h server/Server_window.cpp
+
         server/serverwindow.ui
         client/Game_state_client.h
         client/Game_state_client.cpp
         server/Host_window.h server/Host_window.cpp
         server/hostwindow.ui
+        server/_server.h server/_server.cpp
+        server/myserverbridge.h server/myserverbridge.cpp
 
 
 
