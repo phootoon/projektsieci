@@ -1,14 +1,12 @@
 #include "_server.h"
 
 Server::Server(int port, int pollSize) : opt(1), addrlen(sizeof(address)), nfds(1) {
-
-#ifdef _WIN32
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         std::cerr << "Failed to initialize Winsock" << std::endl;
         exit(EXIT_FAILURE);
     }
-#endif
+
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("socket failed");
         exit(EXIT_FAILURE);
@@ -39,9 +37,7 @@ Server::Server(int port, int pollSize) : opt(1), addrlen(sizeof(address)), nfds(
 }
 
 Server::~Server() {
-#ifdef _WIN32
     WSACleanup();
-#endif
 
     _close(server_fd);
     delete[] fds;
@@ -50,6 +46,8 @@ Server::~Server() {
 void Server::run() {
     while (true) {
         int ret;
+
+        printf("%i", nfds);
 
         ret = WSAPoll(fds, nfds, -1);
 
@@ -72,12 +70,13 @@ void Server::run() {
 
 void Server::handleNewConnection() {
     int new_socket;
-    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (int *)&addrlen)) < 0) {
+    //if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (int *)&addrlen)) < 0) {
+    if ((new_socket = accept(server_fd, nullptr, nullptr)) < 0) {
         perror("accept");
         exit(EXIT_FAILURE);
     }
     pendingConnections.push(new_socket);
-    serverBridge.onNewConnection();
+
 
     int index;
 
@@ -91,6 +90,7 @@ void Server::handleNewConnection() {
 
     fds[index].fd = new_socket;
     fds[index].events = POLLIN;
+    serverBridge.onNewConnection();
 
     std::cout << "New client connected" << std::endl;
 }

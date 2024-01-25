@@ -30,7 +30,7 @@ int getKeyByValue(QHash<int,int>& hash, int client) {
 
 int findFreeSlot(const std::vector<bool>& boolArray) {
     for (int i = 0; i < boolArray.size(); ++i) {
-        if (boolArray[i]) {
+        if (! boolArray[i]) {
             return i;
         }
     }
@@ -65,7 +65,7 @@ void TcpServer::onNewConnection()
     //wysłać alivestatus
     std::vector<bool> vec = game_state.getAliveStatus();
     std::vector<char> charVector(vec.begin(), vec.end());
-    write(client, &charVector, numPlayers);
+    int x = send(client, charVector.data(), numPlayers, 0);
     if(client == -1) {
         return;
     }
@@ -83,9 +83,9 @@ void TcpServer::onReadyRead(int client){
     }
     //czytaj
     char message;
-    int bytesRead = read(client, &message, 1);
+    int bytesRead = recv(client, &message, 1, 0);
     if (bytesRead == 0){
-        emit clientDisconnected(client);
+        //emit clientDisconnected(client);
         return;
     }
     int ix = getKeyByValue(_clients, client);
@@ -101,28 +101,33 @@ void TcpServer::onReadyRead(int client){
             target = game_state.getTarget(ix);
             prob = calculateProb(game_state.getAimTS(ix), now);
             if (prob > getRandomNumber()){
+                qInfo() << "trafiony";
                 int deadClient = _clients.value(target);
                 char msg = '0';
-                write(deadClient, &msg, 1);
+                send(deadClient, &msg, 1, 0);
                 game_state.setAliveStatus(ix, false);
                 auto message = game_state.getAliveStatus();
                 emit newMessage(message);
             }
+            break;
         case '2':
             //celuję
             game_state.setAimTS(ix, now);
+            break;
         case '3':
             //zmieniam cel w prawo
             target = game_state.getTarget(ix);
             if  (target >= 0 and target < numPlayers - 1){
                 game_state.setTarget(ix, target + 1);
             }
+            break;
         case '4':
             //zmieniam cel w lewo
             target = game_state.getTarget(ix);
             if  (target > 0 and target < numPlayers){
                 game_state.setTarget(ix, target - 1);
             }
+            break;
         }
     }
 }
@@ -142,6 +147,6 @@ void TcpServer::onNewMessage(const std::vector<bool> &ba)
 {
     std::vector<char> charVector(ba.begin(), ba.end());
     for(const auto &client : std::as_const(_clients)) {
-        write(client, &charVector, numPlayers);
+        send(client, charVector.data(), numPlayers, 0);
     }
 }

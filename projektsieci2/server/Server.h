@@ -8,6 +8,11 @@
 #include "Game_state.h"
 #include "_server.h"
 #include "myserverbridge.h"
+#ifdef _WIN32
+#include <winsock2.h>
+#include <io.h>
+#pragma comment(lib, "ws2_32.lib")
+#endif
 
 class TcpServer : public QObject
 {
